@@ -1,6 +1,5 @@
-
 name: madarbozorg_family
-description: اپلیکیشن نوبت‌بندی خانوادگی «نوبت بی بی»
+description: اپلیکیشن نوبت‌بندی خانوادگی «دورهمی مادربزرگ»
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -18,14 +17,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
   # FONTS_PLACEHOLDER
-
-flutter_launcher_icons:
-  android: true
-  ios: false
-  image_path: "assets/app_icon.png"
-  remove_alpha: true
