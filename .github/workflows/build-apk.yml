@@ -38,7 +38,7 @@ jobs:
             fi
           done
           M=android/app/src/main/AndroidManifest.xml
-          sed -i -E 's/android:label="[^"]*"/android:label="دورهمی مادربزرگ"/' "$M"
+          sed -i -E 's/android:label="[^"]*"/android:label="نوبت بی بی"/' "$M"
           if ! grep -q 'android.permission.INTERNET' "$M"; then
             sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/>\n    <application|' "$M"
           fi
