@@ -38,7 +38,7 @@ jobs:
             fi
           done
           M=android/app/src/main/AndroidManifest.xml
-          sed -i -E 's/android:label="[^"]*"/android:label="دورهمی مادربزرگ"/' "$M"
+          sed -i -E 's/android:label="[^"]*"/android:label="نوبت بی بی"/' "$M"
           if ! grep -q 'android.permission.INTERNET' "$M"; then
             sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/>\n    <application|' "$M"
           fi
@@ -54,8 +54,10 @@ jobs:
           python3 scripts/enable_font.py
 
       - name: Install packages
-        run: flutter pub get
-
+        run: flutter pub get  
+        
+      - name: Generate App Icon
+        run: dart run flutter_launcher_icons
       - name: Analyze (only errors fail the build)
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
