@@ -28,7 +28,6 @@ jobs:
       - name: Create Android platform files
         run: |
           flutter create --platforms=android --org app.madarbozorg --project-name madarbozorg_family .
-          rm -f test/widget_test.dart
 
       - name: Configure Android app (id, name, internet permission)
         run: |
@@ -51,7 +50,11 @@ jobs:
           BASE=https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/ttf
           curl -fsSL "$BASE/Vazirmatn-Regular.ttf" -o assets/fonts/Vazirmatn-Regular.ttf || true
           curl -fsSL "$BASE/Vazirmatn-Bold.ttf" -o assets/fonts/Vazirmatn-Bold.ttf || true
-          python3 scripts/enable_font.py
+          if [ -f scripts/enable_font.py ]; then
+            python3 scripts/enable_font.py
+          else
+            echo "Font configuration script not found; skipping."
+          fi
 
       - name: Install packages
         run: flutter pub get
