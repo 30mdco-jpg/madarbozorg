@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-const Color seedColor = Color(0xFF00A98F);
+const Color seedColor = Color(0xFF024473);
+const Color headerColor = Color(0xFF024473);
+const Color navBlue = Color(0xFF1E7FE0);
 
 ThemeData buildTheme() {
   final scheme = ColorScheme.fromSeed(seedColor: seedColor).copyWith(
@@ -10,7 +12,7 @@ ThemeData buildTheme() {
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
-    scaffoldBackgroundColor: const Color(0xFFF1FBF8),
+    scaffoldBackgroundColor: const Color(0xFFF2F4F8),
     // اگر فونت وزیرمتن هنگام ساخت اضافه شده باشد استفاده می‌شود؛
     // در غیر این صورت اندروید از فونت فارسی سیستم استفاده می‌کند.
     fontFamily: 'Vazirmatn',
@@ -20,34 +22,56 @@ ThemeData buildTheme() {
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
     ),
-    navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: Colors.white,
-      indicatorColor: seedColor.withAlpha(70),
-    ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: Color(0xFFFF9100),
+      backgroundColor: Color(0xFFF7941D),
       foregroundColor: Colors.white,
     ),
   );
 }
 
+/// دو رنگ هر خانواده: [dark] برای نوار بالای کادر و [light] برای بدنهٔ کادر.
+class FamilyShade {
+  const FamilyShade(this.dark, this.light);
+  final Color dark;
+  final Color light;
+}
+
+const Map<String, FamilyShade> _shades = {
+  'حسن': FamilyShade(Color(0xFF0072BC), Color(0xFF6DCFF6)),
+  'فاطمه': FamilyShade(Color(0xFF197B30), Color(0xFF8DC63F)),
+  'سعید': FamilyShade(Color(0xFFBB6806), Color(0xFFF7941D)),
+  'طاهره': FamilyShade(Color(0xFF630460), Color(0xFF630460)),
+  'محمد': FamilyShade(Color(0xFF247040), Color(0xFF247040)),
+};
+
 const List<Color> familyPalette = [
-  Color(0xFF2979FF), // آبی
-  Color(0xFFFF3D57), // قرمز
-  Color(0xFF00C853), // سبز
-  Color(0xFFAA00FF), // بنفش
-  Color(0xFFFF9100), // نارنجی
-  Color(0xFF00BFA5), // سبزآبی
+  Color(0xFF2979FF),
+  Color(0xFFFF3D57),
+  Color(0xFF00C853),
+  Color(0xFFAA00FF),
+  Color(0xFFFF9100),
+  Color(0xFF00BFA5),
 ];
 
 const List<String> knownFamilyOrder = ['حسن', 'سعید', 'محمد', 'طاهره', 'فاطمه'];
 
-/// رنگ ثابت برای هر خانواده (بر اساس نام، تا در همهٔ گوشی‌ها یکسان باشد).
-Color familyColor(String name) {
-  final index = knownFamilyOrder.indexOf(name);
-  if (index == -1) {
-    final familyIndex = name.hashCode.abs() % familyPalette.length;
-    return familyPalette[familyIndex];
-  }
-  return familyPalette[index];
+FamilyShade familyShade(String name) {
+  final known = _shades[name];
+  if (known != null) return known;
+  final c = familyPalette[name.hashCode.abs() % familyPalette.length];
+  return FamilyShade(c, Color.lerp(c, Colors.white, 0.5)!);
 }
+
+/// رنگ پررنگ خانواده (نوار بالای کادر، نوبت خود کاربر در تقویم).
+Color familyColor(String name) => familyShade(name).dark;
+
+/// رنگ کم‌رنگ خانواده (روزهای خانواده‌های دیگر در تقویم).
+Color familyPale(String name) {
+  final s = familyShade(name);
+  if (s.light == s.dark) return Color.lerp(s.dark, Colors.white, 0.65)!;
+  return s.light;
+}
+
+/// رنگ نوشته روی یک پس‌زمینه: روی رنگ روشن مشکی، روی رنگ تیره سفید.
+Color textOn(Color background) =>
+    background.computeLuminance() > 0.35 ? Colors.black : Colors.white;
