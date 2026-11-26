@@ -40,8 +40,14 @@ class NoteAlerts {
     required String body,
   }) async {
     await init();
-    // شناسهٔ اعلان در بازهٔی جدا از اعلان‌های نوبت.
-    final id = 1000000000 + (noteId.hashCode.abs() % 1000000);
+    // شناسهٔ پایدار از UUID یادداشت ساخته می‌شود تا اعلان تکراری جایگزین شود.
+    final compactId = noteId.replaceAll('-', '');
+    final suffix = int.tryParse(
+          compactId.substring(compactId.length - 8),
+          radix: 16,
+        ) ??
+        0;
+    final id = 1000000000 + (suffix % 1000000);
     await _plugin.show(id, title, body, _details);
   }
 }
@@ -57,12 +63,10 @@ Future<void> checkNewPrivateNotes() async {
       await client.from('profiles').select('family_id').eq('id', user.id).single();
   final myFamily = profile['family_id'] as String;
 
-  final last = await NotesService.lastSeen(user.id);
-  if (last == null) {
-    // اولین بار: نقطهٔ شروع را ذخیره می‌کنیم تا یادداشت‌های قدیمی اعلان نگیرند.
-    await NotesService.saveLastSeen(user.id, DateTime.now().toUtc());
-    return;
-  }
+  final previous = await NotesService.lastSeen(user.id);
+  // در اولین اجرای پس‌زمینه، پیام‌های تازهٔ ۲۰ دقیقهٔ گذشته را هم بررسی کن.
+  final last = previous ??
+      DateTime.now().toUtc().subtract(const Duration(minutes: 20));
 
   final rows = await client
       .from('notes')
@@ -71,7 +75,12 @@ Future<void> checkNewPrivateNotes() async {
       .gt('created_at', last.toIso8601String())
       .order('created_at', ascending: true)
       .limit(20);
-  if (rows.isEmpty) return;
+  if (rows.isEmpty) {
+    if (previous == null) {
+      await NotesService.saveLastSeen(user.id, DateTime.now().toUtc());
+    }
+    return;
+  }
 
   final familyRows = await client.from('families').select('id, name');
   final names = <String, String>{
