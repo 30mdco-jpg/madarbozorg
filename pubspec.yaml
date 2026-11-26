@@ -1,8 +1,7 @@
-
 name: madarbozorg_family
 description: اپلیکیشن نوبت‌بندی خانوادگی «نوبت بی بی»
 publish_to: 'none'
-version: 0.2.0+2
+version: 0.3.0+3
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
@@ -15,6 +14,8 @@ dependencies:
   supabase_flutter: ^2.10.0
   flutter_local_notifications: ^19.5.0
   timezone: ^0.10.0
+  workmanager: ^0.10.10
+  shared_preferences: ^2.3.0
 
 dev_dependencies:
   flutter_test:

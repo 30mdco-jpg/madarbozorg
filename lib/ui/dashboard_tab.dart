@@ -29,6 +29,7 @@ class DashboardTab extends StatelessWidget {
     final tomorrowEntry = book.on(addDays(today, 1));
     final upcoming = book.upcomingFor(profile.familyId, today, limit: 4);
     final myName = _name(profile.familyId);
+    final myColor = familyColor(myName);
     final mineToday = todayEntry?.familyId == profile.familyId;
 
     return RefreshIndicator(
@@ -43,13 +44,16 @@ class DashboardTab extends StatelessWidget {
                 child: Text(
                   'خانوادهٔ $myName',
                   style: theme.textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                      ?.copyWith(fontWeight: FontWeight.bold, color: myColor),
                 ),
               ),
               Chip(
+                backgroundColor: myColor.withAlpha(40),
+                side: BorderSide(color: myColor.withAlpha(150)),
                 avatar: Icon(
                   profile.isAdmin ? Icons.admin_panel_settings : Icons.person,
                   size: 18,
+                  color: myColor,
                 ),
                 label: Text(profile.isAdmin ? 'مدیر برنامه' : 'عضو'),
               ),
@@ -88,8 +92,9 @@ class DashboardTab extends StatelessWidget {
           else
             for (final e in upcoming)
               Card(
+                color: myColor.withAlpha(22),
                 child: ListTile(
-                  leading: const Icon(Icons.event_available),
+                  leading: Icon(Icons.event_available, color: myColor),
                   title: Text(Jalali.fromDate(e.date).formatWithWeekday()),
                   subtitle: Text(relativeDaysText(daysBetween(today, e.date))),
                   trailing: book.blockLengthAt(e.date) > 1
@@ -127,7 +132,14 @@ class _TurnCard extends StatelessWidget {
     final theme = Theme.of(context);
     final color = name == null ? theme.colorScheme.outline : familyColor(name!);
     return Card(
-      color: color.withAlpha(highlight ? 70 : 28),
+      color: color.withAlpha(highlight ? 95 : 48),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(
+          color: color.withAlpha(highlight ? 255 : 120),
+          width: highlight ? 2 : 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -149,9 +161,15 @@ class _TurnCard extends StatelessWidget {
               if (highlight)
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    highlightText,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  child: Row(
+                    children: [
+                      Icon(Icons.celebration, size: 20, color: color),
+                      const SizedBox(width: 6),
+                      Text(
+                        highlightText,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                 ),
               if ((entry!.note ?? '').isNotEmpty) Text(entry!.note!),

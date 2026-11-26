@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/app_config.dart';
+import 'services/notes_background.dart';
 import 'services/reminder_service.dart';
 import 'ui/auth_gate.dart';
 import 'ui/theme.dart';
@@ -17,6 +18,11 @@ Future<void> main() async {
     await ReminderService.init();
   } catch (_) {
     // اگر اعلان‌ها آماده نشد، بقیهٔ برنامه باید کار کند.
+  }
+  try {
+    await registerNotesChecker();
+  } catch (_) {
+    // بررسی پس‌زمینهٔ یادداشت‌ها ثبت نشد؛ بقیهٔ برنامه مختل نمی‌شود.
   }
   runApp(const MadarbozorgApp());
 }
