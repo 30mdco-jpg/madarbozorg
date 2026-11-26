@@ -23,53 +23,27 @@ class DashboardTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final today = tehranToday();
     final todayEntry = book.on(today);
     final tomorrowEntry = book.on(addDays(today, 1));
     final upcoming = book.upcomingFor(profile.familyId, today, limit: 4);
-    final myName = _name(profile.familyId);
-    final myColor = familyColor(myName);
-    final mineToday = todayEntry?.familyId == profile.familyId;
 
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'خانوادهٔ $myName',
-                  style: theme.textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold, color: myColor),
-                ),
-              ),
-              Chip(
-                backgroundColor: myColor.withAlpha(40),
-                side: BorderSide(color: myColor.withAlpha(150)),
-                avatar: Icon(
-                  profile.isAdmin ? Icons.admin_panel_settings : Icons.person,
-                  size: 18,
-                  color: myColor,
-                ),
-                label: Text(profile.isAdmin ? 'مدیر برنامه' : 'عضو'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
           _TurnCard(
             title: 'امروز',
             date: today,
             entry: todayEntry,
             name: todayEntry == null ? null : _name(todayEntry.familyId),
-            highlight: mineToday,
+            highlight: todayEntry?.familyId == profile.familyId,
             highlightText: 'امروز نوبت شماست',
             block: book.blockLengthAt(today),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           _TurnCard(
             title: 'فردا',
             date: addDays(today, 1),
@@ -80,7 +54,10 @@ class DashboardTab extends StatelessWidget {
             block: book.blockLengthAt(addDays(today, 1)),
           ),
           const SizedBox(height: 20),
-          Text('نوبت‌های بعدیِ خانوادهٔ شما', style: theme.textTheme.titleMedium),
+          const Text(
+            'نوبت‌های بعدیِ خانوادهٔ شما',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           if (upcoming.isEmpty)
             const Card(
@@ -91,15 +68,58 @@ class DashboardTab extends StatelessWidget {
             )
           else
             for (final e in upcoming)
-              Card(
-                color: myColor.withAlpha(22),
-                child: ListTile(
-                  leading: Icon(Icons.event_available, color: myColor),
-                  title: Text(Jalali.fromDate(e.date).formatWithWeekday()),
-                  subtitle: Text(relativeDaysText(daysBetween(today, e.date))),
-                  trailing: book.blockLengthAt(e.date) > 1
-                      ? Text('${toFa(book.blockLengthAt(e.date))} روزه')
-                      : null,
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x14000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFDE3E7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.event_available,
+                        color: Color(0xFFE5384F),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            Jalali.fromDate(e.date).formatWithWeekday(),
+                            style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            relativeDaysText(daysBetween(today, e.date)),
+                            style: const TextStyle(
+                              color: Color(0xFFB00020),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (book.blockLengthAt(e.date) > 1)
+                      Text('${toFa(book.blockLengthAt(e.date))} روزه'),
+                  ],
                 ),
               ),
         ],
@@ -129,54 +149,189 @@ class _TurnCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = name == null ? theme.colorScheme.outline : familyColor(name!);
-    return Card(
-      color: color.withAlpha(highlight ? 95 : 48),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(
-          color: color.withAlpha(highlight ? 255 : 120),
-          width: highlight ? 2 : 1,
-        ),
+    final dark = name == null ? Colors.blueGrey : familyColor(name!);
+    final light = name == null ? const Color(0xFFE0E4EA) : familyShade(name!).light;
+    final bodyText = textOn(light);
+    final note = entry?.note ?? '';
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1F000000),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: theme.textTheme.labelLarge),
-            const SizedBox(height: 4),
-            Text(Jalali.fromDate(date).formatWithWeekday()),
-            const SizedBox(height: 8),
-            if (entry == null)
-              const Text('برای این روز نوبتی ثبت نشده است.')
-            else ...[
-              Text(
-                'نوبت: $name',
-                style: theme.textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold, color: color),
-              ),
-              if (block > 1) Text('نوبت ${toFa(block)} روزه'),
-              if (highlight)
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Row(
-                    children: [
-                      Icon(Icons.celebration, size: 20, color: color),
-                      const SizedBox(width: 6),
-                      Text(
-                        highlightText,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
+            Container(
+              width: double.infinity,
+              color: dark,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Text(
+                '$title : ${Jalali.fromDate(date).formatWithWeekday()}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-              if ((entry!.note ?? '').isNotEmpty) Text(entry!.note!),
-            ],
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              color: light,
+              padding: const EdgeInsets.all(16),
+              child: entry == null
+                  ? Text(
+                      'برای این روز نوبتی ثبت نشده است.',
+                      style: TextStyle(color: bodyText),
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: AlignmentDirectional.centerStart,
+                                child: Text(
+                                  'نوبت: $name',
+                                  style: TextStyle(
+                                    color: bodyText,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              if (block > 0)
+                                Text(
+                                  'نوبت ${toFa(block)} روزه',
+                                  style: TextStyle(color: bodyText, fontSize: 15),
+                                ),
+                              if (highlight)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: Text(
+                                    highlightText,
+                                    style: TextStyle(
+                                      color: bodyText,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              if (note.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    note,
+                                    style: TextStyle(color: bodyText),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const CalendarGlyph(size: 84),
+                      ],
+                    ),
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+/// آیکون تقویم و ساعت که با کد کشیده می‌شود.
+class CalendarGlyph extends StatelessWidget {
+  const CalendarGlyph({super.key, this.size = 84});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) =>
+      CustomPaint(size: Size(size, size), painter: _CalendarPainter());
+}
+
+class _CalendarPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width;
+    const line = Color(0xFF3B6AA0);
+    final body = RRect.fromRectAndRadius(
+      Rect.fromLTWH(s * 0.04, s * 0.12, s * 0.8, s * 0.72),
+      Radius.circular(s * 0.08),
+    );
+    canvas.drawRRect(body, Paint()..color = const Color(0xFFE6EEF7));
+    canvas.save();
+    canvas.clipRRect(body);
+    canvas.drawRect(
+      Rect.fromLTWH(s * 0.04, s * 0.12, s * 0.8, s * 0.17),
+      Paint()..color = line,
+    );
+    canvas.restore();
+    canvas.drawRRect(
+      body,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = s * 0.03
+        ..color = line,
+    );
+    final ring = Paint()..color = const Color(0xFF8FA9C9);
+    for (var i = 0; i < 4; i++) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(s * (0.14 + i * 0.18), s * 0.04, s * 0.06, s * 0.14),
+          Radius.circular(s * 0.03),
+        ),
+        ring,
+      );
+    }
+    final cell = Paint()..color = const Color(0xFF7F9CC0);
+    final accent = Paint()..color = const Color(0xFFF26B1D);
+    for (var r = 0; r < 3; r++) {
+      for (var c = 0; c < 4; c++) {
+        canvas.drawRect(
+          Rect.fromLTWH(
+            s * (0.12 + c * 0.17),
+            s * (0.37 + r * 0.14),
+            s * 0.11,
+            s * 0.09,
+          ),
+          (r == 0 && c == 1) ? accent : cell,
+        );
+      }
+    }
+    final center = Offset(s * 0.72, s * 0.72);
+    final radius = s * 0.26;
+    canvas.drawCircle(center, radius, Paint()..color = Colors.white);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = s * 0.035
+        ..color = const Color(0xFF2F5C93),
+    );
+    final hand = Paint()
+      ..color = const Color(0xFF2F5C93)
+      ..strokeWidth = s * 0.03
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(center, Offset(center.dx, center.dy - radius * 0.6), hand);
+    canvas.drawLine(
+      center,
+      Offset(center.dx + radius * 0.45, center.dy + radius * 0.2),
+      hand,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
