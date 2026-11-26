@@ -30,20 +30,11 @@ jobs:
           flutter create --platforms=android --org app.madarbozorg --project-name madarbozorg_family .
           rm -f test/widget_test.dart
 
-      - name: Configure Android app (id, name, internet permission)
+      - name: Configure Android app (id, name, notifications, desugaring)
         run: |
-          for f in android/app/build.gradle android/app/build.gradle.kts; do
-            if [ -f "$f" ]; then
-              sed -i -E 's/applicationId[[:space:]]*=?[[:space:]]*"[^"]+"/applicationId = "app.madarbozorg.family"/' "$f"
-            fi
-          done
-          M=android/app/src/main/AndroidManifest.xml
-          sed -i -E 's/android:label="[^"]*"/android:label="نوبت بی بی"/' "$M"
-          if ! grep -q 'android.permission.INTERNET' "$M"; then
-            sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/>\n    <application|' "$M"
-          fi
-          grep -n "applicationId" android/app/build.gradle* || true
-          grep -n -E "INTERNET|android:label" "$M"
+          python3 scripts/patch_android.py android
+          grep -n -E "applicationId|esugar" android/app/build.gradle* || true
+          grep -n -E "uses-permission|android:label|Scheduled" android/app/src/main/AndroidManifest.xml
 
       - name: Download Vazirmatn font (optional)
         run: |
@@ -55,6 +46,9 @@ jobs:
 
       - name: Install packages
         run: flutter pub get
+
+      - name: Generate App Icon
+        run: dart run flutter_launcher_icons
 
       - name: Analyze (only errors fail the build)
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
