@@ -62,7 +62,7 @@ create policy notes_delete on public.notes
 
 grant select, insert, delete on public.notes to authenticated;
 
--- پاک‌شدن خودکار بعد از ۳۰ روز (هر شب ساعت ۰۳:۰۰ UTC)
+-- پاک‌شدن خودکار یادداشت‌های قدیمی‌تر از ۳۰ روز (هر ساعت)
 create extension if not exists pg_cron;
 
 select cron.unschedule('delete-old-notes')
@@ -70,6 +70,6 @@ where exists (select 1 from cron.job where jobname = 'delete-old-notes');
 
 select cron.schedule(
   'delete-old-notes',
-  '0 3 * * *',
+  '0 * * * *',
   $$ delete from public.notes where created_at < now() - interval '30 days' $$
 );
