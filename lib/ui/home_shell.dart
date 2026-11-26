@@ -10,6 +10,7 @@ import 'common_widgets.dart';
 import 'dashboard_tab.dart';
 import 'notes_tab.dart';
 import 'reminders_tab.dart';
+import 'theme.dart';
 
 /// چارچوب اصلی پس از ورود: داده‌ها را یک‌بار می‌گیرد و بین «خانه»، «تقویم»،
 /// «یادداشت‌ها» و «یادآوری» پخش می‌کند.
@@ -119,7 +120,6 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    const titles = ['خانه', 'تقویم', 'یادداشت‌ها', 'یادآوری'];
     Widget body;
     if (_loading) {
       body = const LoadingView();
@@ -160,39 +160,206 @@ class _HomeShellState extends State<HomeShell> {
       );
     }
 
+    final familyName = _families[widget.profile.familyId]?.name;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(titles[_tab]),
-        actions: [
-          IconButton(
-            tooltip: 'به‌روزرسانی',
-            icon: const Icon(Icons.refresh),
-            onPressed: _loading ? null : _reload,
+      body: Column(
+        children: [
+          _Header(
+            familyName: familyName,
+            loading: _loading,
+            onRefresh: _reload,
+            onLogout: widget.onLogout,
           ),
-          PopupMenuButton<String>(
-            tooltip: 'منو',
-            onSelected: (v) {
-              if (v == 'logout') widget.onLogout();
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'logout', child: Text('خروج از حساب')),
-            ],
-          ),
+          Expanded(child: body),
         ],
       ),
-      body: SafeArea(child: body),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'خانه'),
-          NavigationDestination(
-              icon: Icon(Icons.calendar_month_outlined), label: 'تقویم'),
-          NavigationDestination(
-              icon: Icon(Icons.sticky_note_2_outlined), label: 'یادداشت‌ها'),
-          NavigationDestination(
-              icon: Icon(Icons.notifications_outlined), label: 'یادآوری'),
-        ],
+      bottomNavigationBar: _FloatingNav(
+        index: _tab,
+        onChanged: (i) => setState(() => _tab = i),
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.familyName,
+    required this.loading,
+    required this.onRefresh,
+    required this.onLogout,
+  });
+
+  final String? familyName;
+  final bool loading;
+  final VoidCallback onRefresh;
+  final Future<void> Function() onLogout;
+
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
+    return ClipPath(
+      clipper: _WaveClipper(),
+      child: Container(
+        color: headerColor,
+        padding: EdgeInsets.fromLTRB(12, top + 8, 12, 40),
+        child: SizedBox(
+          height: 80,
+          child: Stack(
+            children: [
+              Center(
+                child: Container(
+                  width: 76,
+                  height: 76,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 3),
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/app_icon.png',
+                      fit: BoxFit.cover,
+                      cacheWidth: 200,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(30),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        familyName == null ? 'خانواده' : 'خانواده $familyName',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      tooltip: 'به‌روزرسانی',
+                      icon: const Icon(Icons.refresh, color: Colors.white),
+                      onPressed: loading ? null : onRefresh,
+                    ),
+                    PopupMenuButton<String>(
+                      tooltip: 'منو',
+                      icon: const Icon(Icons.more_vert, color: Colors.white),
+                      onSelected: (v) {
+                        if (v == 'logout') onLogout();
+                      },
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(
+                            value: 'logout', child: Text('خروج از حساب')),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final w = size.width;
+    final h = size.height;
+    final path = Path()
+      ..lineTo(0, h - 28)
+      ..quadraticBezierTo(w * 0.25, h, w * 0.5, h - 18)
+      ..quadraticBezierTo(w * 0.78, h - 42, w, h - 14)
+      ..lineTo(w, 0)
+      ..close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+class _FloatingNav extends StatelessWidget {
+  const _FloatingNav({required this.index, required this.onChanged});
+
+  final int index;
+  final ValueChanged<int> onChanged;
+
+  static const _items = [
+    (Icons.home_outlined, Icons.home_rounded, 'خانه'),
+    (Icons.calendar_month_outlined, Icons.calendar_month, 'تقویم'),
+    (Icons.sticky_note_2_outlined, Icons.sticky_note_2, 'یادداشت‌ها'),
+    (Icons.notifications_outlined, Icons.notifications, 'یادآوری'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x26000000),
+              blurRadius: 14,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            for (var i = 0; i < _items.length; i++)
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(22),
+                  onTap: () => onChanged(i),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOut,
+                        width: i == index ? 72 : 44,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: i == index ? navBlue : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          i == index ? _items[i].$2 : _items[i].$1,
+                          color: i == index ? Colors.white : Colors.black54,
+                          size: 26,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _items[i].$3,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight:
+                              i == index ? FontWeight.bold : FontWeight.normal,
+                          color: i == index ? navBlue : Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
