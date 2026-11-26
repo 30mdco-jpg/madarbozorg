@@ -187,17 +187,31 @@ class _CalendarTabState extends State<CalendarTab> {
               final isToday = date == today;
               final mine = entry?.familyId == widget.profile.familyId;
               final name = entry == null ? null : _name(entry.familyId);
-              final color = name == null ? theme.colorScheme.outline : familyColor(name);
               final block = widget.book.blockLengthAt(date);
+
+              // نوبت خانوادهٔ کاربر: رنگ پررنگ و نوشتهٔ سفید.
+              // نوبت خانواده‌های دیگر: رنگ کم‌رنگ و نوشتهٔ مشکی.
+              Color bg;
+              Color fg;
+              if (name == null) {
+                bg = theme.colorScheme.outline.withAlpha(25);
+                fg = Colors.black87;
+              } else if (mine) {
+                bg = familyColor(name);
+                fg = Colors.white;
+              } else {
+                bg = familyPale(name);
+                fg = Colors.black;
+              }
               return InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () => _showDay(date),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: color.withAlpha(entry == null ? 18 : (mine ? 150 : 55)),
+                    color: bg,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isToday ? theme.colorScheme.primary : Colors.transparent,
+                      color: isToday ? Colors.black87 : Colors.transparent,
                       width: 2.5,
                     ),
                   ),
@@ -207,19 +221,22 @@ class _CalendarTabState extends State<CalendarTab> {
                     children: [
                       Text(
                         toFa(day),
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 13),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: fg),
                       ),
                       if (name != null)
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text(name, style: const TextStyle(fontSize: 10)),
+                          child: Text(name,
+                              style: TextStyle(fontSize: 10, color: fg)),
                         ),
                       if (block > 1)
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text('${toFa(block)} روزه',
-                              style: const TextStyle(fontSize: 8)),
+                              style: TextStyle(fontSize: 8, color: fg)),
                         ),
                     ],
                   ),
@@ -245,7 +262,7 @@ class _CalendarTabState extends State<CalendarTab> {
           ),
           const SizedBox(height: 8),
           Text(
-            'روزهای پررنگ‌تر نوبت خانوادهٔ شماست. دورِ روز امروز قاب دارد.',
+            'روزهای پررنگ با نوشتهٔ سفید نوبت خانوادهٔ شماست و روزهای کم‌رنگ مال خانواده‌های دیگر. دورِ روز امروز قاب دارد.',
             style: theme.textTheme.bodySmall,
           ),
         ],
