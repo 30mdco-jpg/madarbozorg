@@ -296,8 +296,9 @@ class _ComposeSheet extends StatefulWidget {
 }
 
 class _ComposeSheetState extends State<_ComposeSheet> {
+  static const String _allFamilies = '__all_families__';
   final _controller = TextEditingController();
-  String? _to;
+  String _to = _allFamilies;
 
   @override
   void dispose() {
@@ -308,6 +309,7 @@ class _ComposeSheetState extends State<_ComposeSheet> {
   @override
   Widget build(BuildContext context) {
     final canSend = _controller.text.trim().isNotEmpty;
+    final isPublic = _to == _allFamilies;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         16,
@@ -319,24 +321,24 @@ class _ComposeSheetState extends State<_ComposeSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DropdownButtonFormField<String?>(
+          DropdownButtonFormField<String>(
             value: _to,
             decoration: const InputDecoration(
               labelText: 'برای',
               border: OutlineInputBorder(),
             ),
             items: [
-              const DropdownMenuItem<String?>(
-                value: null,
+              const DropdownMenuItem<String>(
+                value: _allFamilies,
                 child: Text('همه (یادداشت همگانی)'),
               ),
               for (final f in widget.families)
-                DropdownMenuItem<String?>(
+                DropdownMenuItem<String>(
                   value: f.id,
                   child: Text('فقط خانوادهٔ ${f.name} (خصوصی)'),
                 ),
             ],
-            onChanged: (v) => setState(() => _to = v),
+            onChanged: (v) => setState(() => _to = v ?? _allFamilies),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -356,11 +358,14 @@ class _ComposeSheetState extends State<_ComposeSheet> {
             onPressed: canSend
                 ? () => Navigator.pop(
                       context,
-                      _Draft(_controller.text.trim(), _to),
+                      _Draft(
+                        _controller.text.trim(),
+                        isPublic ? null : _to,
+                      ),
                     )
                 : null,
             icon: const Icon(Icons.send),
-            label: Text(_to == null ? 'ارسال برای همه' : 'ارسال خصوصی'),
+            label: Text(isPublic ? 'ارسال برای همه' : 'ارسال خصوصی'),
           ),
         ],
       ),
