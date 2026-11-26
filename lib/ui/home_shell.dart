@@ -8,10 +8,11 @@ import '../services/reminder_service.dart';
 import 'calendar_tab.dart';
 import 'common_widgets.dart';
 import 'dashboard_tab.dart';
+import 'notes_tab.dart';
 import 'reminders_tab.dart';
 
-/// چارچوب اصلی پس از ورود: داده‌ها را یک‌بار می‌گیرد و بین «خانه»، «تقویم»
-/// و «یادآوری» پخش می‌کند.
+/// چارچوب اصلی پس از ورود: داده‌ها را یک‌بار می‌گیرد و بین «خانه»، «تقویم»،
+/// «یادداشت‌ها» و «یادآوری» پخش می‌کند.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key, required this.profile, required this.onLogout});
 
@@ -118,7 +119,7 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    const titles = ['خانه', 'تقویم', 'یادآوری'];
+    const titles = ['خانه', 'تقویم', 'یادداشت‌ها', 'یادآوری'];
     Widget body;
     if (_loading) {
       body = const LoadingView();
@@ -143,6 +144,11 @@ class _HomeShellState extends State<HomeShell> {
         families: _families,
         book: _book,
         onRefresh: _refreshSilently,
+      );
+    } else if (_tab == 2) {
+      body = NotesTab(
+        profile: widget.profile,
+        families: _families,
       );
     } else {
       body = RemindersTab(
@@ -182,6 +188,8 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(icon: Icon(Icons.home_outlined), label: 'خانه'),
           NavigationDestination(
               icon: Icon(Icons.calendar_month_outlined), label: 'تقویم'),
+          NavigationDestination(
+              icon: Icon(Icons.sticky_note_2_outlined), label: 'یادداشت‌ها'),
           NavigationDestination(
               icon: Icon(Icons.notifications_outlined), label: 'یادآوری'),
         ],
