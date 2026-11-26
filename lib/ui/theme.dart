@@ -38,7 +38,7 @@ class FamilyShade {
 
 const Map<String, FamilyShade> _shades = {
   'حسن': FamilyShade(Color(0xFF0072BC), Color(0xFF6DCFF6)),
-  'فاطمه': FamilyShade(Color(0xFF197B30), Color(0xFF8DC63F)),
+  'فاطمه': FamilyShade(Color(0xFF8B1FA6), Color(0xFFD592E5)),
   'سعید': FamilyShade(Color(0xFFBB6806), Color(0xFFF7941D)),
   'طاهره': FamilyShade(Color(0xFF630460), Color(0xFF630460)),
   'محمد': FamilyShade(Color(0xFF247040), Color(0xFF247040)),
@@ -65,11 +65,10 @@ FamilyShade familyShade(String name) {
 /// رنگ پررنگ خانواده (نوار بالای کادر، نوبت خود کاربر در تقویم).
 Color familyColor(String name) => familyShade(name).dark;
 
-/// رنگ کم‌رنگ خانواده (روزهای خانواده‌های دیگر در تقویم).
+/// رنگ کم‌رنگ خانواده در تقویم: همان رنگ روشن با ۵۰٪ شفافیت.
 Color familyPale(String name) {
   final s = familyShade(name);
-  if (s.light == s.dark) return Color.lerp(s.dark, Colors.white, 0.65)!;
-  return s.light;
+  return s.light.withAlpha(128);
 }
 
 /// رنگ نوشته روی یک پس‌زمینه: روی رنگ روشن مشکی، روی رنگ تیره سفید.
