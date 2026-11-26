@@ -1,34 +1,34 @@
-name: "madarbozorg\u005ffamily"
+name: madarbozorg_family
 description: اپلیکیشن نوبت‌بندی خانوادگی «نوبت بی بی»
-"publish\u005fto": 'none'
+publish_to: 'none'
 version: 0.3.0+3
 
 environment:
-  sdk: "\u003e=3.5.0 \u003c4.0.0"
+  sdk: '>=3.5.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  "flutter\u005flocalizations":
+  flutter_localizations:
     sdk: flutter
-  "supabase\u005fflutter": ^2.10.0
-  "flutter\u005flocal\u005fnotifications": ^19.5.0
+  supabase_flutter: ^2.10.0
+  flutter_local_notifications: ^19.5.0
   timezone: ^0.10.0
   workmanager: ^0.10.10
-  "shared\u005fpreferences": ^2.3.0
+  shared_preferences: ^2.3.0
 
 dev_dependencies:
-  "flutter\u005ftest":
+  flutter_test:
     sdk: flutter
-  "flutter\u005flints": ^4.0.0
-  "flutter\u005flauncher\u005ficons": ^0.14.4
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
-  # Font placeholder
+  # FONTS_PLACEHOLDER
 
-"flutter\u005flauncher\u005ficons":
+flutter_launcher_icons:
   android: true
   ios: false
-  "image\u005fpath": "assets/app\u005ficon.png"
+  image_path: "assets/app_icon.png"
   remove_alpha: true
