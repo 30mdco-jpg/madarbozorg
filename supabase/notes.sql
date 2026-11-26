@@ -31,7 +31,7 @@ grant execute on function public.my_family_id() to authenticated;
 
 alter table public.notes enable row level security;
 
--- همه یادداشت‌های همگانی، به‌علاوهٔ خصوصی‌هایی که برای خانوادهٔ من آمده یا خانوادهٔ من نوشته.
+-- همه یادداشت‌های همگانی، یادداشت‌های خطاب به من، و خصوصی‌هایی که خودم فرستاده‌ام.
 drop policy if exists notes_select on public.notes;
 create policy notes_select on public.notes
   for select to authenticated
@@ -40,7 +40,7 @@ create policy notes_select on public.notes
     and (
       to_family_id is null
       or to_family_id = public.my_family_id()
-      or author_family_id = public.my_family_id()
+      or author_id = auth.uid()
     )
   );
 
