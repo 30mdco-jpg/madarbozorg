@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
+import '../services/reminder_service.dart';
 import 'change_password_screen.dart';
 import 'common_widgets.dart';
 import 'home_shell.dart';
@@ -58,6 +59,8 @@ class _AuthGateState extends State<AuthGate> {
     final userChanged = newSession?.user.id != _session?.user.id;
     _session = newSession;
     if (newSession == null) {
+      // با پایان نشست، اعلان‌های این حساب هم باید پاک شوند.
+      ReminderService.cancelAll();
       _token++;
       setState(() {
         _profile = null;

@@ -105,7 +105,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     enableSuggestions: false,
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
-                          labelText: 'رمز جدید (حداقل ۸ کاراکتر)',
+                          labelText: 'رمز جدید (حداقل ۴ کاراکتر)',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(_hide

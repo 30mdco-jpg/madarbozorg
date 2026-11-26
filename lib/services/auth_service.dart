@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_config.dart';
+import '../core/password_rules.dart';
 
 /// خطایی که پیام آن مستقیماً برای کاربر قابل نمایش است.
 class UserFacingError implements Exception {
@@ -24,7 +25,8 @@ class AuthService {
       throw const UserFacingError(kBadCredentialsMessage);
     }
     try {
-      await _client.auth.signInWithPassword(email: email, password: password);
+      await _client.auth
+          .signInWithPassword(email: email, password: serverPassword(password));
     } on AuthRetryableFetchException {
       throw const UserFacingError(kNetworkMessage);
     } on AuthException {
@@ -47,7 +49,7 @@ class AuthService {
   /// مرحلهٔ ۱: تغییر رمز در Supabase Auth.
   Future<void> updatePassword(String newPassword) async {
     try {
-      await _client.auth.updateUser(UserAttributes(password: newPassword));
+      await _client.auth.updateUser(UserAttributes(password: serverPassword(newPassword)));
     } on AuthRetryableFetchException {
       throw const UserFacingError(kNetworkMessage);
     } on AuthException catch (e) {

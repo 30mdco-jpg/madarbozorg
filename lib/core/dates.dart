@@ -21,6 +21,10 @@ DateTime tehranToday([DateTime? nowUtc]) {
   return DateTime.utc(t.year, t.month, t.day);
 }
 
+/// «ساعت دیوار» تهران، به‌صورت DateTime با برچسب UTC (فقط برای مقایسه و محاسبه).
+DateTime tehranNow([DateTime? nowUtc]) =>
+    (nowUtc ?? DateTime.now().toUtc()).add(const Duration(hours: 3, minutes: 30));
+
 DateTime addDays(DateTime d, int n) => DateTime.utc(d.year, d.month, d.day + n);
 
 int daysBetween(DateTime from, DateTime to) => to.difference(from).inDays;

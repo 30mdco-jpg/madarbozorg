@@ -67,6 +67,9 @@ class ScheduleBook {
   bool get isEmpty => _sorted.isEmpty;
   int get length => _sorted.length;
 
+  /// همهٔ نوبت‌ها به ترتیب تاریخ (فقط‌خواندنی).
+  List<ScheduleEntry> get entries => List.unmodifiable(_sorted);
+
   ScheduleEntry? on(DateTime day) => _byDate[isoDate(day)];
 
   /// نوبت‌های بعدی یک خانواده، کاملاً بعد از [after].
