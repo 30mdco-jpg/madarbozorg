@@ -16,6 +16,8 @@ class ReminderService {
   static bool _ready = false;
 
   static const String _channelId = 'turn_reminders';
+  // شناسه‌های اعلان‌های نوبت کمتر از این حد هستند؛ اعلان یادداشت‌ها شناسهٔ جدا دارد.
+  static const int _turnNotificationIdLimit = 1000000;
 
   static const NotificationDetails _details = NotificationDetails(
     android: AndroidNotificationDetails(
@@ -63,11 +65,21 @@ class ReminderService {
     }
   }
 
-  /// همهٔ اعلان‌های قبلی را پاک می‌کند و [items] را از نو برنامه‌ریزی می‌کند.
+  /// فقط یادآورهای نوبت را پاک می‌کند تا اعلان‌های یادداشت خانوادگی باقی بمانند.
+  static Future<void> _cancelTurnReminders() async {
+    final pending = await _plugin.pendingNotificationRequests();
+    for (final request in pending) {
+      if (request.id >= 0 && request.id < _turnNotificationIdLimit) {
+        await _plugin.cancel(request.id);
+      }
+    }
+  }
+
+  /// یادآورهای نوبت را از نو برنامه‌ریزی می‌کند و اعلان‌های یادداشت را نگه می‌دارد.
   /// تعداد اعلان‌های برنامه‌ریزی‌شده را برمی‌گرداند.
   static Future<int> replaceAll(List<PlannedReminder> items) async {
     await init();
-    await _plugin.cancelAll();
+    await _cancelTurnReminders();
     final tehran = tz.getLocation('Asia/Tehran');
     var count = 0;
     for (final r in items) {
@@ -95,7 +107,7 @@ class ReminderService {
   static Future<void> cancelAll() async {
     try {
       await init();
-      await _plugin.cancelAll();
+      await _cancelTurnReminders();
     } catch (_) {
       // نبودن اعلان برای لغو، خطای مهمی نیست.
     }
