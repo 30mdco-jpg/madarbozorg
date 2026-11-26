@@ -11,6 +11,7 @@ import 'dashboard_tab.dart';
 import 'notes_tab.dart';
 import 'reminders_tab.dart';
 import 'theme.dart';
+import 'wave_header.dart';
 
 /// چارچوب اصلی پس از ورود: داده‌ها را یک‌بار می‌گیرد و بین «خانه»، «تقویم»،
 /// «یادداشت‌ها» و «یادآوری» پخش می‌کند.
@@ -198,94 +199,96 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
-    return ClipPath(
-      clipper: _WaveClipper(),
-      child: Container(
-        color: headerColor,
-        padding: EdgeInsets.fromLTRB(12, top + 8, 12, 40),
-        child: SizedBox(
-          height: 80,
-          child: Stack(
-            children: [
-              Center(
-                child: Container(
-                  width: 76,
-                  height: 76,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 3),
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/app_icon.png',
-                      fit: BoxFit.cover,
-                      cacheWidth: 200,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
+    final pageColor = Theme.of(context).scaffoldBackgroundColor;
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [headerColor, Color(0xFF0B67A8)],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 56,
+            child: WaveBackground(waveColor: pageColor),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(12, top + 8, 12, 44),
+            child: SizedBox(
+              height: 80,
+              child: Stack(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 76,
+                      height: 76,
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(30),
-                        borderRadius: BorderRadius.circular(20),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3),
                       ),
-                      child: Text(
-                        familyName == null ? 'خانواده' : 'خانواده $familyName',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/app_icon.png',
+                          fit: BoxFit.cover,
+                          cacheWidth: 200,
                         ),
                       ),
                     ),
-                    const Spacer(),
-                    IconButton(
-                      tooltip: 'به‌روزرسانی',
-                      icon: const Icon(Icons.refresh, color: Colors.white),
-                      onPressed: loading ? null : onRefresh,
-                    ),
-                    PopupMenuButton<String>(
-                      tooltip: 'منو',
-                      icon: const Icon(Icons.more_vert, color: Colors.white),
-                      onSelected: (v) {
-                        if (v == 'logout') onLogout();
-                      },
-                      itemBuilder: (_) => const [
-                        PopupMenuItem(
-                            value: 'logout', child: Text('خروج از حساب')),
+                  ),
+                  Positioned.fill(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(30),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            familyName == null
+                                ? 'خانواده'
+                                : 'خانواده $familyName',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          tooltip: 'به‌روزرسانی',
+                          icon: const Icon(Icons.refresh, color: Colors.white),
+                          onPressed: loading ? null : onRefresh,
+                        ),
+                        PopupMenuButton<String>(
+                          tooltip: 'منو',
+                          icon:
+                              const Icon(Icons.more_vert, color: Colors.white),
+                          onSelected: (v) {
+                            if (v == 'logout') onLogout();
+                          },
+                          itemBuilder: (_) => const [
+                            PopupMenuItem(
+                                value: 'logout', child: Text('خروج از حساب')),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
-}
-
-class _WaveClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final w = size.width;
-    final h = size.height;
-    final path = Path()
-      ..lineTo(0, h - 28)
-      ..quadraticBezierTo(w * 0.25, h, w * 0.5, h - 18)
-      ..quadraticBezierTo(w * 0.78, h - 42, w, h - 14)
-      ..lineTo(w, 0)
-      ..close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _FloatingNav extends StatelessWidget {
