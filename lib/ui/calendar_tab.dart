@@ -113,6 +113,36 @@ class _CalendarTabState extends State<CalendarTab> {
     );
   }
 
+  /// دکمهٔ گردِ ماه قبل/بعد. جهت فلش مستقل از راست‌به‌چپ بودن صفحه تنظیم شده:
+  /// ماه قبل سمت راست (فلش به راست)، ماه بعد سمت چپ (فلش به چپ).
+  Widget _arrowButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: headerColor.withAlpha(22),
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: SizedBox(
+            width: 42,
+            height: 42,
+            child: Icon(
+              icon,
+              color: headerColor,
+              size: 26,
+              textDirection: TextDirection.ltr,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -134,9 +164,9 @@ class _CalendarTabState extends State<CalendarTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(
+              _arrowButton(
+                icon: Icons.chevron_right,
                 tooltip: 'ماه قبل',
-                icon: const Icon(Icons.chevron_right),
                 onPressed: () => _shiftMonth(-1),
               ),
               Text(
@@ -144,9 +174,9 @@ class _CalendarTabState extends State<CalendarTab> {
                 style: theme.textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
-              IconButton(
+              _arrowButton(
+                icon: Icons.chevron_left,
                 tooltip: 'ماه بعد',
-                icon: const Icon(Icons.chevron_left),
                 onPressed: () => _shiftMonth(1),
               ),
             ],
@@ -168,8 +198,9 @@ class _CalendarTabState extends State<CalendarTab> {
                 ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 2),
           GridView.builder(
+            padding: EdgeInsets.zero,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -190,7 +221,7 @@ class _CalendarTabState extends State<CalendarTab> {
               final block = widget.book.blockLengthAt(date);
 
               // نوبت خانوادهٔ کاربر: رنگ پررنگ و نوشتهٔ سفید.
-              // نوبت خانواده‌های دیگر: رنگ کم‌رنگ و نوشتهٔ مشکی.
+              // نوبت خانواده‌های دیگر: رنگ کم‌رنگ (۵۰٪ شفاف) و نوشتهٔ مشکی.
               Color bg;
               Color fg;
               if (name == null) {
