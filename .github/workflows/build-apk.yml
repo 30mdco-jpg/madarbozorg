@@ -5,6 +5,9 @@ on:
   push:
     branches: [main, master]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -65,3 +68,15 @@ jobs:
           name: madarbozorg-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
+
+      - name: Publish APK for direct download
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk madarbozorg.apk
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest madarbozorg.apk \
+            --title "Latest app version" \
+            --notes "Built from branch ${{ github.ref_name }}, commit ${{ github.sha }}" \
+            --target "${{ github.sha }}"
