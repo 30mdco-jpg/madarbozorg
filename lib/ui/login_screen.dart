@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           size: 72, color: theme.colorScheme.primary),
                       const SizedBox(height: 12),
                       Text(
-                        'دورهمی مادربزرگ',
+                        'نوبت بی بی',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold),

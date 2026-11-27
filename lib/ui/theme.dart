@@ -40,7 +40,8 @@ const Map<String, FamilyShade> _shades = {
   'حسن': FamilyShade(Color(0xFF0072BC), Color(0xFF6DCFF6)),
   'فاطمه': FamilyShade(Color(0xFF8B1FA6), Color(0xFFD592E5)),
   'سعید': FamilyShade(Color(0xFFBB6806), Color(0xFFF7941D)),
-  'طاهره': FamilyShade(Color(0xFF630460), Color(0xFF630460)),
+  // طاهره: نوار بالا قرمز تیره (b12411) و بدنه هلویی (fe8a7b)
+  'طاهره': FamilyShade(Color(0xFFB12411), Color(0xFFFE8A7B)),
   'محمد': FamilyShade(Color(0xFF247040), Color(0xFF247040)),
 };
 
@@ -69,6 +70,13 @@ Color familyColor(String name) => familyShade(name).dark;
 Color familyPale(String name) {
   final s = familyShade(name);
   return s.light.withAlpha(128);
+}
+
+/// رنگ روشنِ چشمک (نوبت بعدی). اگر رنگ روشن و تیرهٔ خانواده یکی باشد
+/// (مثل محمد)، رنگ تیره را به سفید نزدیک می‌کنیم تا چشمک دیده شود.
+Color pulseLightColor(String name) {
+  final s = familyShade(name);
+  return s.light == s.dark ? Color.lerp(s.dark, Colors.white, 0.78)! : s.light;
 }
 
 /// رنگ نوشته روی یک پس‌زمینه: روی رنگ روشن مشکی، روی رنگ تیره سفید.
