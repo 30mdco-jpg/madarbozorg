@@ -125,9 +125,20 @@ class _TurnCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isTahereh = name == 'طاهره';
     final color = name == null ? theme.colorScheme.outline : familyColor(name!);
+    // کارت طاهره: زمینهٔ هلویی (fe8a7b) با کادر و نوشتهٔ قرمز تیره (b12411)
+    final accent = isTahereh ? taherehDarkColor : color;
     return Card(
-      color: color.withAlpha(highlight ? 70 : 28),
+      color: isTahereh
+          ? taherehLightColor.withAlpha(highlight ? 255 : 150)
+          : color.withAlpha(highlight ? 70 : 28),
+      shape: isTahereh
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: taherehDarkColor, width: 2.5),
+            )
+          : null,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -143,7 +154,7 @@ class _TurnCard extends StatelessWidget {
               Text(
                 'نوبت: $name',
                 style: theme.textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold, color: color),
+                    ?.copyWith(fontWeight: FontWeight.bold, color: accent),
               ),
               if (block > 1) Text('نوبت ${toFa(block)} روزه'),
               if (highlight)

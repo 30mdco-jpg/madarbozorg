@@ -27,7 +27,7 @@ class MadarbozorgApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'دورهمی مادربزرگ',
+      title: 'نوبت بی بی',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       locale: const Locale('fa', 'IR'),

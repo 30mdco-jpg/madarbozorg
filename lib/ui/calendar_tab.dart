@@ -26,9 +26,16 @@ class CalendarTab extends StatefulWidget {
   State<CalendarTab> createState() => _CalendarTabState();
 }
 
-class _CalendarTabState extends State<CalendarTab> {
+class _CalendarTabState extends State<CalendarTab>
+    with SingleTickerProviderStateMixin {
   late int _year;
   late int _month;
+
+  /// چشمک ملایم برای نوبت بعدیِ خانوادهٔ کاربر (تیره ⇄ روشن).
+  late final AnimationController _pulse;
+
+  static const Color _todayBackground = Colors.black;
+  static const Color _todayText = Color(0xFFFFEB3B); // زرد
 
   @override
   void initState() {
@@ -36,6 +43,100 @@ class _CalendarTabState extends State<CalendarTab> {
     final j = Jalali.fromDate(tehranToday());
     _year = j.year;
     _month = j.month;
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // اگر کاربر «کاهش انیمیشن» را در گوشی روشن کرده، چشمک زده نمی‌شود.
+    if (MediaQuery.of(context).disableAnimations) {
+      _pulse.stop();
+      _pulse.value = 0;
+    } else if (!_pulse.isAnimating) {
+      _pulse.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  /// روزهای نوبت بعدیِ خانوادهٔ کاربر (شروع نوبت بعد از امروز و روزهای پشت‌سرهمش).
+  Set<String> _nextTurnKeys(DateTime today) {
+    final mine = widget.profile.familyId;
+    final book = widget.book;
+    for (final e in book.entries) {
+      if (e.familyId != mine || !e.date.isAfter(today)) continue;
+      if (book.on(addDays(e.date, -1))?.familyId == mine) continue; // ادامهٔ نوبت قبلی
+      final keys = <String>{};
+      var d = e.date;
+      while (book.on(d)?.familyId == mine) {
+        keys.add(isoDate(d));
+        d = addDays(d, 1);
+      }
+      return keys;
+    }
+    return <String>{};
+  }
+
+  Widget _dayBox({
+    required String dayText,
+    required String? name,
+    required int block,
+    required Color background,
+    required Color foreground,
+    required bool emphasized,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            dayText,
+            style: TextStyle(
+              fontWeight: emphasized ? FontWeight.w900 : FontWeight.bold,
+              fontSize: emphasized ? 16 : 13,
+              color: foreground,
+            ),
+          ),
+          if (name != null)
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                name,
+                style: TextStyle(
+                  fontSize: emphasized ? 11.5 : 10,
+                  fontWeight: emphasized ? FontWeight.w800 : FontWeight.normal,
+                  color: foreground,
+                ),
+              ),
+            ),
+          if (block > 1)
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '${toFa(block)} روزه',
+                style: TextStyle(
+                  fontSize: emphasized ? 9 : 8,
+                  fontWeight: emphasized ? FontWeight.w700 : FontWeight.normal,
+                  color: foreground,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   void _shiftMonth(int delta) {
@@ -122,6 +223,8 @@ class _CalendarTabState extends State<CalendarTab> {
     final length = Jalali.monthLength(_year, _month);
     final totalCells = ((blanks + length + 6) ~/ 7) * 7;
 
+    final nextKeys = _nextTurnKeys(today);
+
     final legend = widget.families.values.toList()
       ..sort((a, b) => a.name.compareTo(b.name));
 
@@ -189,41 +292,53 @@ class _CalendarTabState extends State<CalendarTab> {
               final name = entry == null ? null : _name(entry.familyId);
               final color = name == null ? theme.colorScheme.outline : familyColor(name);
               final block = widget.book.blockLengthAt(date);
+              final dayText = toFa(day);
+
+              Widget box;
+              if (isToday) {
+                // امروز: پس‌زمینهٔ مشکی با نوشتهٔ زردِ بولد و بزرگ‌تر
+                box = _dayBox(
+                  dayText: dayText,
+                  name: name,
+                  block: block,
+                  background: _todayBackground,
+                  foreground: _todayText,
+                  emphasized: true,
+                );
+              } else if (nextKeys.contains(isoDate(date))) {
+                // نوبت بعدیِ خانوادهٔ کاربر: چشمک ملایم تیره ⇄ روشن
+                final dark = darkerShade(color);
+                final light = lighterShade(color);
+                box = AnimatedBuilder(
+                  animation: _pulse,
+                  builder: (context, _) {
+                    final t = Curves.easeInOut.transform(_pulse.value);
+                    final k = ((t - 0.35) / 0.3).clamp(0.0, 1.0).toDouble();
+                    return _dayBox(
+                      dayText: dayText,
+                      name: name,
+                      block: block,
+                      background: Color.lerp(dark, light, t)!,
+                      foreground: Color.lerp(Colors.white, Colors.black, k)!,
+                      emphasized: true,
+                    );
+                  },
+                );
+              } else {
+                // کادر خانواده‌های دیگر ۵۰٪ کم‌رنگ‌تر از قبل (۵۵ ← ۲۸)
+                box = _dayBox(
+                  dayText: dayText,
+                  name: name,
+                  block: block,
+                  background: color.withAlpha(entry == null ? 18 : (mine ? 150 : 28)),
+                  foreground: theme.colorScheme.onSurface,
+                  emphasized: false,
+                );
+              }
               return InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () => _showDay(date),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: color.withAlpha(entry == null ? 18 : (mine ? 150 : 55)),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isToday ? theme.colorScheme.primary : Colors.transparent,
-                      width: 2.5,
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 3),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        toFa(day),
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                      if (name != null)
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(name, style: const TextStyle(fontSize: 10)),
-                        ),
-                      if (block > 1)
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text('${toFa(block)} روزه',
-                              style: const TextStyle(fontSize: 8)),
-                        ),
-                    ],
-                  ),
-                ),
+                child: box,
               );
             },
           ),
@@ -245,7 +360,7 @@ class _CalendarTabState extends State<CalendarTab> {
           ),
           const SizedBox(height: 8),
           Text(
-            'روزهای پررنگ‌تر نوبت خانوادهٔ شماست. دورِ روز امروز قاب دارد.',
+            'روز امروز مشکی است. نوبت بعدیِ خانوادهٔ شما چشمک می‌زند و روزهای پررنگ‌تر نوبت شماست.',
             style: theme.textTheme.bodySmall,
           ),
         ],
