@@ -6,15 +6,20 @@
 - گیرنده‌های اعلان زمان‌بندی‌شده
 - فعال‌سازی core library desugaring (لازم برای flutter_local_notifications)
 - آیکن کوچک اعلان (ic_stat_notify) و جلوگیری از حذف آن توسط shrink
+- آیکن بزرگ اعلان (notification_large_icon) از روی assets/app_icon.png
 """
 import os
 import re
+import shutil
+import subprocess
 import sys
 
 APP_ID = "app.madarbozorg.family"
 LABEL = "نوبت بی بی"
 DESUGAR_VERSION = "2.1.4"
 ANDROID_DIR = sys.argv[1] if len(sys.argv) > 1 else "android"
+LARGE_ICON_SOURCE = "assets/app_icon.png"
+LARGE_ICON_SIZE = 256
 
 
 def read(path):
@@ -103,14 +108,43 @@ ICON = """<vector xmlns:android="http://schemas.android.com/apk/res/android"
 
 KEEP = """<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@drawable/ic_stat_notify" />
+    tools:keep="@drawable/ic_stat_notify,@drawable/notification_large_icon" />
 """
+
+
+def add_large_icon(drawable_dir):
+    """تصویر آیکن برنامه را (کوچک‌شده) برای نمایش داخل اعلان کپی می‌کند."""
+    if not os.path.exists(LARGE_ICON_SOURCE):
+        sys.exit(f"{LARGE_ICON_SOURCE} پیدا نشد؛ آیکن بزرگ اعلان ساخته نشد")
+    target = os.path.join(drawable_dir, "notification_large_icon.png")
+    size = (LARGE_ICON_SIZE, LARGE_ICON_SIZE)
+    try:
+        from PIL import Image  # اگر نصب باشد
+
+        img = Image.open(LARGE_ICON_SOURCE).convert("RGBA")
+        img.thumbnail(size)
+        img.save(target, "PNG")
+        return
+    except Exception:
+        pass
+    try:
+        subprocess.run(
+            ["convert", LARGE_ICON_SOURCE, "-resize", f"{size[0]}x{size[1]}", target],
+            check=True,
+        )
+        return
+    except Exception:
+        pass
+    # آخرین راه: همان تصویر اصلی (بزرگ‌تر است ولی کار می‌کند)
+    shutil.copyfile(LARGE_ICON_SOURCE, target)
 
 
 def add_resources():
     res = os.path.join(ANDROID_DIR, "app", "src", "main", "res")
-    write(os.path.join(res, "drawable", "ic_stat_notify.xml"), ICON)
+    drawable = os.path.join(res, "drawable")
+    write(os.path.join(drawable, "ic_stat_notify.xml"), ICON)
     write(os.path.join(res, "raw", "keep.xml"), KEEP)
+    add_large_icon(drawable)
 
 
 if __name__ == "__main__":

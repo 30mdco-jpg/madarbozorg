@@ -23,6 +23,8 @@ class NoteAlerts {
       importance: Importance.high,
       priority: Priority.high,
       icon: 'ic_stat_notify',
+      // تصویر آیکن برنامه کنار متن اعلان (فایل را اسکریپت ساخت اضافه می‌کند).
+      largeIcon: DrawableResourceAndroidBitmap('notification_large_icon'),
     ),
   );
 

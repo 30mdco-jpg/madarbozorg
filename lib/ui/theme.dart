@@ -66,10 +66,13 @@ FamilyShade familyShade(String name) {
 /// رنگ پررنگ خانواده (نوار بالای کادر، نوبت خود کاربر در تقویم).
 Color familyColor(String name) => familyShade(name).dark;
 
-/// رنگ کم‌رنگ خانواده در تقویم: همان رنگ روشن با ۵۰٪ شفافیت.
+/// شفافیت رنگ خانواده‌های دیگر در تقویم (۶۴ از ۲۵۵ ≈ ۲۵٪؛ قبلاً ۱۲۸ یا ۵۰٪ بود).
+const int familyPaleAlpha = 64;
+
+/// رنگ کم‌رنگ خانواده در تقویم: همان رنگ روشن با شفافیت [familyPaleAlpha].
 Color familyPale(String name) {
   final s = familyShade(name);
-  return s.light.withAlpha(128);
+  return s.light.withAlpha(familyPaleAlpha);
 }
 
 /// رنگ روشنِ چشمک (نوبت بعدی). اگر رنگ روشن و تیرهٔ خانواده یکی باشد
